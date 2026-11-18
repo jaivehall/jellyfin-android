@@ -44,6 +44,14 @@ abstract class JellyfinWebViewClient(
         val url = request.url
         val path = url.path?.lowercase(Locale.ROOT) ?: return null
         return when {
+            // Replace Jellyfin Web branding images with the Finplayer icon
+            path.matches(Constants.WEB_LOGO_PATH_REGEX) -> {
+                val asset = when {
+                    path.contains("banner-") -> "native/web_banner_light.png"
+                    else -> "native/web_icon_transparent.png"
+                }
+                assetsPathHandler.inject(asset)
+            }
             path.matches(Constants.MAIN_BUNDLE_PATH_REGEX) && "deferred" !in url.query.orEmpty() -> {
                 onConnectedToWebapp()
                 assetsPathHandler.inject("native/injectionScript.js")

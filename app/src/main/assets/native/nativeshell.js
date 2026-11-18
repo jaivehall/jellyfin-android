@@ -1,3 +1,14 @@
+// Jellyfin Web reads the experimental PGS/VobSub subtitle renderer from
+// appSettings.get('subtitlerenderpgs') === 'true'. Seed it as enabled by default,
+// but never override a value the user has explicitly chosen before.
+try {
+    if (window.localStorage.getItem('subtitlerenderpgs') === null) {
+        window.localStorage.setItem('subtitlerenderpgs', 'true');
+    }
+} catch (e) {
+    // localStorage can be unavailable in restricted contexts; ignore.
+}
+
 const features = [
     "castmenuhashchange",
     "clientsettings",

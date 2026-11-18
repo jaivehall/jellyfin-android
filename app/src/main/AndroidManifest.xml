@@ -3,6 +3,8 @@
     android:installLocation="auto">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission
         android:name="android.permission.BLUETOOTH"
@@ -73,6 +75,11 @@
             android:name=".player.interaction.PlayerService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+
+        <service
+            android:name=".player.cast.dlna.DlnaProxyService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"

@@ -8,14 +8,18 @@ import org.jellyfin.mobile.BuildConfig
 @Suppress("MagicNumber")
 object Constants {
     // App Info
-    const val APP_INFO_NAME = "Jellyfin for Android"
+    const val APP_INFO_NAME = "Finplayer for Android"
     const val APP_INFO_VERSION: String = BuildConfig.VERSION_NAME
 
     // Webapp constants
     const val MINIMUM_WEB_VIEW_VERSION = 80
+    // No bundled default server; the user enters their own address on first launch.
+    const val DEFAULT_SERVER_URL = ""
     const val SHOW_PROGRESS_BAR_DELAY = 1000L
     const val INITIAL_CONNECTION_TIMEOUT = 10000L // 10 seconds
     val MAIN_BUNDLE_PATH_REGEX = Regex(""".*/main\.[^/\s]+\.bundle\.js""")
+    // Jellyfin Web branding images replaced with the Finplayer icon
+    val WEB_LOGO_PATH_REGEX = Regex(""".*/(icon-transparent|banner-light|banner-dark|favicon|touchicon|touchicon144)\.[0-9a-f]+\.(png|ico)"""", RegexOption.IGNORE_CASE)
     const val CAST_SDK_PATH = "cast_sender.js"
     const val SESSION_CAPABILITIES_PATH = "sessions/capabilities/full"
 

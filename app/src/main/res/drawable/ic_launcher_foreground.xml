@@ -1,19 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="1024"
     android:viewportHeight="1024">
-    <path android:pathData="m512 284.789466c-57.344 0-241.850182 334.568734-213.736727 391.074914 28.113454 56.50618 399.639277 55.85454 427.473457 0 27.83418-55.85455-156.39273-391.074914-213.73673-391.074914zm140.10182 342.109094c-18.24582 36.58473-261.67855 37.05018-280.11055 0-18.431997-37.05018 102.49309-256.27928 140.00873-256.27928s158.34764 219.60146 140.10182 256.27928zm-140.10182-176.128c-18.99055 0-80.24436 111.05745-70.93527 129.76873 9.30909 18.71127 132.65454 18.52509 141.87054 0s-51.85163-129.76873-70.93527-129.76873z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endColor="#00A4DC"
-                android:endX="752"
-                android:endY="692"
-                android:startColor="#AA5CC3"
-                android:startX="366"
-                android:startY="469"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
+    <!-- Finplayer snowflake: three rotated F glyphs, scaled down by 1/3 vs v5 -->
+
+    <!-- F 1: cool blue -->
+    <group android:rotation="0" android:pivotX="512" android:pivotY="512">
+        <path
+            android:pathData="M512,512L512,360M512,360L618.667,360M512,437.333L581.333,437.333"
+            android:fillColor="@android:color/transparent"
+            android:strokeWidth="29.333"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round">
+            <aapt:attr name="android:strokeColor">
+                <gradient
+                    android:type="radial"
+                    android:centerX="512" android:centerY="512"
+                    android:gradientRadius="200"
+                    android:startColor="#7CE7FF"
+                    android:endColor="#3C7BFF" />
+            </aapt:attr>
+        </path>
+    </group>
+
+    <!-- F 2: mint green -->
+    <group android:rotation="120" android:pivotX="512" android:pivotY="512">
+        <path
+            android:pathData="M512,512L512,360M512,360L618.667,360M512,437.333L581.333,437.333"
+            android:fillColor="@android:color/transparent"
+            android:strokeWidth="29.333"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round">
+            <aapt:attr name="android:strokeColor">
+                <gradient
+                    android:type="radial"
+                    android:centerX="512" android:centerY="512"
+                    android:gradientRadius="200"
+                    android:startColor="#9BF6D8"
+                    android:endColor="#2ED3B5" />
+            </aapt:attr>
+        </path>
+    </group>
+
+    <!-- F 3: warm coral -->
+    <group android:rotation="240" android:pivotX="512" android:pivotY="512">
+        <path
+            android:pathData="M512,512L512,360M512,360L618.667,360M512,437.333L581.333,437.333"
+            android:fillColor="@android:color/transparent"
+            android:strokeWidth="29.333"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round">
+            <aapt:attr name="android:strokeColor">
+                <gradient
+                    android:type="radial"
+                    android:centerX="512" android:centerY="512"
+                    android:gradientRadius="200"
+                    android:startColor="#FFC08A"
+                    android:endColor="#FF6F91" />
+            </aapt:attr>
+        </path>
+    </group>
 </vector>

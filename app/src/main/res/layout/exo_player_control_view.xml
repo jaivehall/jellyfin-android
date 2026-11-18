@@ -154,7 +154,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
-        app:constraint_referenced_ids="audio_streams_button,subtitles_button,fullscreen_switcher" />
+        app:constraint_referenced_ids="audio_streams_button,subtitles_button,cast_button,fullscreen_switcher" />
 
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/lock_screen_button"
@@ -234,6 +234,34 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/decoder_button" />
 
+    <!-- Hidden route button kept only to open the Google Cast chooser on demand. -->
+    <androidx.mediarouter.app.MediaRouteButton
+        android:id="@+id/cast_route_button"
+        android:layout_width="@dimen/exo_bottom_controls_size"
+        android:layout_height="@dimen/exo_bottom_controls_size"
+        android:layout_marginBottom="@dimen/exo_bottom_controls_margin"
+        android:background="@drawable/ripple_background_circular"
+        android:contentDescription="@string/player_cast_button"
+        android:padding="@dimen/exo_bottom_controls_padding"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/info_button"
+        app:mediaRouteButtonTint="?android:textColorPrimary" />
+
+    <!-- Single visible cast button: offers Google Cast and DLNA. -->
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/cast_button"
+        android:layout_width="@dimen/exo_bottom_controls_size"
+        android:layout_height="@dimen/exo_bottom_controls_size"
+        android:layout_marginBottom="@dimen/exo_bottom_controls_margin"
+        android:background="@drawable/ripple_background_circular"
+        android:contentDescription="@string/player_cast_button"
+        android:padding="@dimen/exo_bottom_controls_padding"
+        android:src="@drawable/ic_cast_white_24dp"
+        android:tint="?android:textColorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/info_button" />
+
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/fullscreen_switcher"
         android:layout_width="@dimen/exo_bottom_controls_size"
@@ -244,7 +272,8 @@
         android:padding="@dimen/exo_bottom_controls_padding"
         android:src="@drawable/ic_fullscreen_enter_white_32dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cast_button" />
 
     <FrameLayout
         android:id="@+id/trickplay_container"

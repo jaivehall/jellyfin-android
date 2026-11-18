@@ -8,11 +8,13 @@ import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import androidx.core.content.getSystemService
 import androidx.lifecycle.AndroidViewModel
+import androidx.mediarouter.app.MediaRouteButton
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -40,6 +42,11 @@ import org.jellyfin.mobile.BuildConfig
 import org.jellyfin.mobile.R
 import org.jellyfin.mobile.app.AppPreferences
 import org.jellyfin.mobile.app.PLAYER_EVENT_CHANNEL
+import org.jellyfin.mobile.player.cast.CastDiscoveryHandle
+import org.jellyfin.mobile.player.cast.CastPlayerFactory
+import org.jellyfin.mobile.player.cast.CastRouteInfo
+import org.jellyfin.mobile.player.cast.dlna.DlnaManager
+import org.jellyfin.mobile.player.cast.ICastPlayerFactory
 import org.jellyfin.mobile.player.interaction.PlayerEvent
 import org.jellyfin.mobile.player.interaction.PlayerLifecycleObserver
 import org.jellyfin.mobile.player.interaction.PlayerMediaSessionCallback
@@ -117,13 +124,36 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
         get() = queueManager.getCurrentMediaSourceOrNull()
     private val mediaSegmentRepository: MediaSegmentRepository by inject()
 
-    // ExoPlayer
-    private val _player = MutableLiveData<ExoPlayer?>()
+    // Player (local ExoPlayer, optionally wrapped in a CastPlayer)
+    private val castPlayerFactory: ICastPlayerFactory = CastPlayerFactory()
+    val isCastAvailable: Boolean get() = castPlayerFactory.isCastAvailable
+
+    // DLNA casting works in both flavors (no GMS dependency)
+    val dlnaManager = DlnaManager(
+        context = getApplication<Application>().applicationContext,
+        apiClient = apiClient,
+    )
+
+    private var casting = false
+    private val _isCasting = MutableLiveData(false)
+    val isCasting: LiveData<Boolean> get() = _isCasting
+
+    private val _isDlnaCasting = MutableLiveData(false)
+    val isDlnaCasting: LiveData<Boolean> get() = _isDlnaCasting
+
+    fun setDlnaCasting(active: Boolean) {
+        _isDlnaCasting.postValue(active)
+    }
+
+    private val _player = MutableLiveData<Player?>()
     private val _playerState = MutableLiveData<Int>()
     private val _decoderType = MutableLiveData<DecoderType>()
-    val player: LiveData<ExoPlayer?> get() = _player
+    val player: LiveData<Player?> get() = _player
     val playerState: LiveData<Int> get() = _playerState
     val decoderType: LiveData<DecoderType> get() = _decoderType
+
+    /** Local player used when no cast session is active. */
+    private var exoPlayer: ExoPlayer? = null
 
     // Player Menus
     private var playerMenuHelper: PlayerMenuHelper? = null
@@ -146,9 +176,9 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
     private var fallbackRetryJob: Job? = null
 
     /**
-     * Returns the current ExoPlayer instance or null
+     * Returns the currently active player (local or remote) or null
      */
-    val playerOrNull: ExoPlayer? get() = _player.value
+    val playerOrNull: Player? get() = _player.value
 
     private val playerEventChannel: Channel<PlayerEvent> by inject(named(PLAYER_EVENT_CHANNEL))
 
@@ -276,7 +306,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
                 filteredDecoderList
             }
         }.let { if (appPreferences.exoPlayerDirectPlayAss) AssRenderersFactory(get(), it) else it }
-        _player.value = ExoPlayer.Builder(getApplication(), renderersFactory, get()).apply {
+        val localPlayer = ExoPlayer.Builder(getApplication(), renderersFactory, get()).apply {
             setUsePlatformDiagnostics(false)
             setTrackSelector(trackSelector)
             setAnalyticsCollector(analyticsCollector)
@@ -288,10 +318,20 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
             applyDefaultAudioAttributes(C.AUDIO_CONTENT_TYPE_MOVIE)
             if (appPreferences.exoPlayerDirectPlayAss) get<AssHandler>().init(this)
         }
+        exoPlayer = localPlayer
+
+        // CastPlayer transparently switches between the local player and the receiver.
+        // Media3 transfers media item, position and play state when a session connects/disconnects.
+        val player = castPlayerFactory.createPlayer(
+            context = getApplication<Application>().applicationContext,
+            localPlayer = localPlayer,
+        )
+        onDeviceInfoChanged(player.deviceInfo)
+        _player.value = player
     }
 
     /**
-     * Release the current ExoPlayer and stop/release the current MediaSession
+     * Release the current player (including a possible cast session) and stop/release the MediaSession
      */
     private fun releasePlayer() {
         notificationHelper.dismissNotification()
@@ -301,13 +341,33 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
             removeListener(this@PlayerViewModel)
             release()
         }
+        exoPlayer = null
+        casting = false
+        _isCasting.postValue(false)
+        _isDlnaCasting.postValue(false)
+        viewModelScope.launch {
+            runCatching { dlnaManager.stop() }
+        }
         _player.value = null
     }
+
+    /** Wire up the cast route picker button shown in the player controls. */
+    fun setupCastButton(button: MediaRouteButton) {
+        castPlayerFactory.setupCastButton(getApplication<Application>().applicationContext, button)
+    }
+
+    fun discoverCastRoutes(onRoutesChanged: (List<CastRouteInfo>) -> Unit): CastDiscoveryHandle =
+        castPlayerFactory.discoverCastRoutes(getApplication<Application>().applicationContext, onRoutesChanged)
+
+    fun selectCastRoute(key: String) =
+        castPlayerFactory.selectCastRoute(getApplication<Application>().applicationContext, key)
 
     fun load(jellyfinMediaSource: JellyfinMediaSource, exoMediaSource: MediaSource, playWhenReady: Boolean) {
         val player = playerOrNull ?: return
 
-        player.setMediaSource(exoMediaSource)
+        // Use the MediaItem (with stream URI) instead of a raw MediaSource so Media3 can
+        // transfer playback to a Cast receiver when a session becomes available.
+        player.setMediaItem(exoMediaSource.mediaItem)
         player.prepare()
 
         initialTracksSelected.set(false)
@@ -373,6 +433,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
      * recreate the player with the selected decoder type
      */
     fun updateDecoderType(type: DecoderType) {
+        // Decoding happens on the receiver while casting, so this setting has no effect.
+        if (casting) return
         _decoderType.postValue(type)
         analyticsCollector.release()
         val playedTime = (playerOrNull?.currentPosition ?: 0L).milliseconds
@@ -381,6 +443,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
             removeListener(this@PlayerViewModel)
             release()
         }
+        exoPlayer = null
         analyticsCollector = buildAnalyticsCollector()
         setupPlayer()
         queueManager.getCurrentMediaSourceOrNull()?.startTime = playedTime
@@ -548,7 +611,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
     }
 
     private fun addSkipAction(mediaSegment: MediaSegmentDto) {
-        val player = playerOrNull ?: return
+        // Player messages are an ExoPlayer-only API; keep them on the local player.
+        val player = exoPlayer ?: return
 
         player
             .createMessage { _, _ ->
@@ -665,7 +729,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
     }
 
     fun logTracks() {
-        playerOrNull?.logTracks(analyticsCollector)
+        if (!casting) playerOrNull?.logTracks(analyticsCollector)
     }
 
     suspend fun changeBitrate(bitrate: Int?): Boolean {
@@ -770,6 +834,14 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
         }
     }
 
+    override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
+        val isCasting = deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE
+        casting = isCasting
+        _isCasting.postValue(isCasting)
+        // Track selection needs to run again when playback returns to the local player.
+        if (!isCasting) initialTracksSelected.set(false)
+    }
+
     override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
         super.onPositionDiscontinuity(oldPosition, newPosition, reason)
         playerOrNull?.setWatchedChapterMarkings()
@@ -777,12 +849,18 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
     }
 
     override fun onPlayerError(error: PlaybackException) {
+        // Local decoder fallbacks cannot fix an error reported by the Cast receiver.
+        if (casting) {
+            _error.postValue(error.localizedMessage.orEmpty())
+            return
+        }
         if (error.cause is MediaCodecDecoderException && !fallbackPreferExtensionRenderers) {
             Timber.e(error.cause, "Decoder failed, attempting to restart playback with decoder extensions preferred")
             playerOrNull?.run {
                 removeListener(this@PlayerViewModel)
                 release()
             }
+            exoPlayer = null
             fallbackPreferExtensionRenderers = true
             setupPlayer()
             queueManager.tryRestartPlayback()

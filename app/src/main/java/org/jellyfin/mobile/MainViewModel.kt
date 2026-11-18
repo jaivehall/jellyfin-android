@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import org.jellyfin.mobile.app.ApiClientController
 import org.jellyfin.mobile.data.entity.ServerEntity
 import org.jellyfin.mobile.data.entity.UserEntity
+import org.jellyfin.mobile.utils.Constants
 import java.util.UUID
 
 class MainViewModel(
@@ -40,7 +41,11 @@ class MainViewModel(
     }
 
     private suspend fun refreshServer() {
-        val serverEntity = apiClientController.loadSavedServer()
+        var serverEntity = apiClientController.loadSavedServer()
+        if (serverEntity == null && Constants.DEFAULT_SERVER_URL.isNotBlank()) {
+            apiClientController.setupServer(Constants.DEFAULT_SERVER_URL)
+            serverEntity = apiClientController.loadSavedServer()
+        }
         _serverState.value = serverEntity?.let { entity -> ServerState.Available(entity) } ?: ServerState.Unset
     }
 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rounded, semi-transparent background shared by toast views and hint
+     dialogs. ~85% opacity keeps white text clearly readable even over
+     bright video content while still letting the video bleed through. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#D915151B" />
+    <corners android:radius="28dp" />
+</shape>

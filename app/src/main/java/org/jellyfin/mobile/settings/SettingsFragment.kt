@@ -172,6 +172,7 @@ class SettingsFragment : Fragment(), BackPressInterceptor {
             titleRes = R.string.pref_exoplayer_direct_play_ass
             summaryRes = R.string.pref_exoplayer_direct_play_ass_description
             enabled = appPreferences.videoPlayerType == VideoPlayerType.EXO_PLAYER
+            defaultValue = true
         }
         val networkBufferOptions = listOf(
             SelectionItem(

@@ -56,6 +56,7 @@ import org.jellyfin.mobile.setup.ConnectionHelper
 import org.jellyfin.mobile.ui.state.CheckUrlState
 import org.jellyfin.mobile.ui.state.ServerSelectionMode
 import org.jellyfin.mobile.ui.utils.CenterRow
+import org.jellyfin.mobile.utils.Constants
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -70,7 +71,7 @@ fun ServerSelection(
     val coroutineScope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var serverSelectionMode by remember { mutableStateOf(ServerSelectionMode.ADDRESS) }
-    var hostname by remember { mutableStateOf("") }
+    var hostname by remember { mutableStateOf(Constants.DEFAULT_SERVER_URL) }
     val serverSuggestions = remember { mutableStateListOf<ServerSuggestion>() }
     var checkUrlState by remember<MutableState<CheckUrlState>> { mutableStateOf(CheckUrlState.Unchecked) }
     var externalError by remember { mutableStateOf(showExternalConnectionError) }

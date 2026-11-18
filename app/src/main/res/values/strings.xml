@@ -82,6 +82,27 @@
     <string name="menu_item_hardware_decoding">Hardware Decoding</string>
     <string name="menu_item_software_decoding">Software Decoding</string>
     <string name="skip_media_segment">Skip</string>
+    <string name="player_cast_button">Cast to a device</string>
+    <string name="player_cast_method_chromecast">Google Cast</string>
+    <string name="player_cast_method_dlna">DLNA</string>
+    <string name="player_cast_searching">Searching for cast devices…</string>
+    <string name="player_cast_no_devices">No cast devices found. Make sure your device is on the same Wi-Fi network.</string>
+    <string name="player_cast_select_device">Select a device</string>
+    <string name="player_cast_cancel_search">Cancel search</string>
+    <string name="player_dlna_button">Cast via DLNA</string>
+    <string name="player_dlna_searching">Searching for DLNA devices…</string>
+    <string name="player_dlna_no_devices">No DLNA devices found. Make sure your TV is on the same Wi-Fi network and DLNA is enabled.</string>
+    <string name="player_dlna_select_device">Select a device</string>
+    <string name="player_dlna_start_failed">Could not start casting to this device</string>
+    <string name="player_dlna_connecting">Preparing stream for %1$s…</string>
+    <string name="player_dlna_retry">Trying a compatible stream format (%1$d/%2$d)…</string>
+    <string name="player_dlna_connected">Casting to %1$s</string>
+    <string name="player_dlna_stop">Stop casting</string>
+    <string name="player_dlna_pause">Pause</string>
+    <string name="player_dlna_resume">Resume</string>
+    <string name="player_dlna_cancel">Cancel</string>
+    <string name="dlna_proxy_notification_title">Casting to TV (relay mode)</string>
+    <string name="dlna_proxy_notification_text">Keep this notification to maintain playback. Your phone can be locked.</string>
 
     <string name="external_player_invalid_play_method">Invalid play method.</string>
     <string name="external_player_not_supported_yet">Playback tracking not supported in selected external player yet. Contact developers to try to add support for it.</string>

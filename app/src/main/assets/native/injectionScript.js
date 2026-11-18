@@ -1,6 +1,7 @@
 (() => {
     const scripts = [
         '/native/nativeshell.js',
+        '/native/appIcon.js',
         '/native/EventEmitter.js',
         document.currentScript.src.concat('?deferred=true&ts=', Date.now())
     ];
