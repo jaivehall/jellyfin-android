@@ -13,7 +13,7 @@
     <string name="pref_category_video_player">Reproductor de video</string>
     <string name="pref_music_notification_always_dismissible_title">Notificación del reproductor de música descartable</string>
     <string name="pref_category_music_player">Reproductor de Música</string>
-    <string name="activity_name_settings">Configuración de Jellyfin</string>
+    <string name="activity_name_settings">Configuración de Finplayer</string>
     <string name="menu_item_none">Ninguno</string>
     <string name="playback_info_audio_streams">Transmisiones de audio</string>
     <string name="playback_info_video_streams">Transmisiones de vídeo</string>
@@ -106,7 +106,7 @@
     <string name="bluetooth_permission_continue">Continuar</string>
     <string name="bluetooth_permission_granted">Permiso Bluetooth Otorgado</string>
     <string name="menu_item_hardware_decoding">Decodificación por Hardware</string>
-    <string name="bluetooth_permission_message">Para detectar cuando tus auriculares o parlantes inalámbricos están desconectados la aplicación necesita acceso a Bluetooth. En Android este permiso se conoce como Acceso a Dispositivos Cercanos y alerta acerca de que los dispositivos Bluetooth pueden detectar tu ubicación actual. Sin embargo, la aplicación Jellyfin nunca va a usar estos permisos para conocer tu ubicación.</string>
+    <string name="bluetooth_permission_message">Para detectar cuando tus auriculares o parlantes inalámbricos están desconectados la aplicación necesita acceso a Bluetooth. En Android este permiso se conoce como Acceso a Dispositivos Cercanos y alerta acerca de que los dispositivos Bluetooth pueden detectar tu ubicación actual. Sin embargo, la aplicación Finplayer nunca va a usar estos permisos para conocer tu ubicación.</string>
     <string name="mobile_data_summary">El contenido será descargado por WiFi y datos moviles.</string>
     <string name="mobile_data_and_roaming_summary">El contenido será descargado por WiFi, datos moviles y roaming.</string>
     <string name="wifi_only_summary">El contenido va a ser descargado solo por WiFi.</string>
@@ -132,7 +132,7 @@
     <string name="special_episode">Especial</string>
     <string name="media_service_unknown_page">Página desconocida</string>
     <string name="media_service_no_items">No se encontraron artículos</string>
-    <string name="media_service_auth_expired">Por favor, abre la aplicación en tu teléfono para iniciar sesión en tu servidor Jellyfin.</string>
+    <string name="media_service_auth_expired">Por favor, abre la aplicación en tu teléfono para iniciar sesión en tu servidor Finplayer.</string>
     <string name="media_service_invalid_id">ID de artículo no válido</string>
     <string name="media_service_car_section_favorites">Favoritos</string>
     <string name="media_service_car_section_audiobooks">Audiolibros</string>

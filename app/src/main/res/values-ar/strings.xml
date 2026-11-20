@@ -39,7 +39,7 @@
     <string name="pref_music_notification_always_dismissible_summary_on">الاشعار يمكن اخفاءه دائماً، حتى لو كان المشغل يعمل</string>
     <string name="pref_music_notification_always_dismissible_summary_off">الإشعار يمكن صرفه فقط عند إيقاف التشغيل مؤقتًا</string>
     <string name="pref_category_music_player">مشغل الموسيقى</string>
-    <string name="activity_name_settings">إعدادات Jellyfin</string>
+    <string name="activity_name_settings">إعدادات Finplayer</string>
     <string name="external_player_invalid_player">لم يتم تحديد مشغل خارجي صالح. تعطيل تتبع التشغيل.</string>
     <string name="external_player_unknown_error">خطأ غير معروف في المشغل الخارجي. تعطيل تتبع التشغيل.</string>
     <string name="external_player_not_supported_yet">تتبع التشغيل غير مدعوم في المشغل الخارجي المختار حاليا. اتصل بالمطورين لمحاولة إضافة دعم لها.</string>
@@ -59,7 +59,7 @@
     <string name="notification_action_rewind">الإرجاع</string>
     <string name="notification_action_previous">السابق</string>
     <string name="music_notification_channel_description">تستخدم للتحكم في تشغيل الموسيقى</string>
-    <string name="music_notification_channel">مشغل موسيقى Jellyfin</string>
+    <string name="music_notification_channel">مشغل موسيقى Finplayer</string>
     <string name="media_service_car_item_no_title">بلا عنوان</string>
     <string name="media_service_car_section_genres">الأنواع</string>
     <string name="media_service_car_section_songs">الأغاني</string>
@@ -108,7 +108,7 @@
     <string name="bluetooth_permission_title">السماح بتشغيل البلوتوث؟</string>
     <string name="bluetooth_permission_continue">تابع</string>
     <string name="bluetooth_permission_granted">تم السماح لتشغيل البلوتوث</string>
-    <string name="bluetooth_permission_message">للتنبه عند اقطاع الاتصال بالسماعات، التطبيق يحتاج للسماح بتشغيل البلوتوث. على الأندرويد هذه الخاصية تسمى السماح بالاتصال بالأجهزة القريبة Access to Nearby Devices و يحذر أن أجهزة البلوتوث ممكن أن تستخدم للحصول على معلومات الموقع الحالي. لكن Jellyfin لن يستخدم هذه الخاصية أبدا للحصول على موقعك.</string>
+    <string name="bluetooth_permission_message">للتنبه عند اقطاع الاتصال بالسماعات، التطبيق يحتاج للسماح بتشغيل البلوتوث. على الأندرويد هذه الخاصية تسمى السماح بالاتصال بالأجهزة القريبة Access to Nearby Devices و يحذر أن أجهزة البلوتوث ممكن أن تستخدم للحصول على معلومات الموقع الحالي. لكن Finplayer لن يستخدم هذه الخاصية أبدا للحصول على موقعك.</string>
     <string name="wifi_only_summary">سيتم تنزيل الوسائط عبر الواي فاي فقط.</string>
     <string name="mobile_data_summary">سيتم تنزيل الوسائط عبر الواي فاي والبيانات الخلوية.</string>
     <string name="mobile_data_and_roaming_summary">سيتم تنزيل الوسائط عبر الواي فاي والبيانات الخلوية وشبكة التجوال.</string>
@@ -141,7 +141,7 @@
     <string name="network_buffer_extra_large_description">أقصى حجم للتخزين المؤقت، مخصص للاتصالات البطيئة أو عبر الأقمار الصناعية</string>
     <string name="media_service_unknown_page">صفحة مجهولة</string>
     <string name="media_service_no_items">تعذر العثور على العناصر</string>
-    <string name="media_service_auth_expired">يرجى فتح التطبيق من هاتفك و الولوج إلى خادم Jellyfin الخاص بك.</string>
+    <string name="media_service_auth_expired">يرجى فتح التطبيق من هاتفك و الولوج إلى خادم Finplayer الخاص بك.</string>
     <string name="media_service_invalid_id">تعريف عنصر خاطئ</string>
     <string name="media_service_car_section_favorites">المفضلة</string>
     <string name="media_service_car_section_audiobooks">كتب صوتية</string>

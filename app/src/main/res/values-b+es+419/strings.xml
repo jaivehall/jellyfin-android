@@ -11,7 +11,7 @@
     <string name="host_input_hint">Servidor</string>
     <string name="connect_to_server_title">Conectar al servidor</string>
     <string name="pref_category_music_player">Reproductor de música</string>
-    <string name="activity_name_settings">Configuración de Jellyfin</string>
+    <string name="activity_name_settings">Configuración de Finplayer</string>
     <string name="playback_info_and_x_more">...y %d más</string>
     <string name="playback_info_audio_streams">Flujos de audio</string>
     <string name="playback_info_video_streams">Transmisiones de vídeo</string>
@@ -56,7 +56,7 @@
     <string name="external_player_mpv">Reproductor MPV</string>
     <string name="external_player_app">Reproductor de video externo</string>
     <string name="music_notification_channel_description">Se utiliza para controlar la reproducción de música</string>
-    <string name="music_notification_channel">Reproductor de música de Jellyfin</string>
+    <string name="music_notification_channel">Reproductor de música de Finplayer</string>
     <string name="media_service_car_item_no_title">Sin título</string>
     <string name="media_service_car_section_genres">Géneros</string>
     <string name="media_service_car_section_songs">Canciones</string>
@@ -132,7 +132,7 @@
     <string name="special_episode">Especial</string>
     <string name="media_service_unknown_page">Paágina desconocida</string>
     <string name="media_service_no_items">No se encontraron ítems</string>
-    <string name="media_service_auth_expired">Por favor, abre la aplicación en tu teléfono para ingresar a tu servidor Jellyfin.</string>
+    <string name="media_service_auth_expired">Por favor, abre la aplicación en tu teléfono para ingresar a tu servidor Finplayer.</string>
     <string name="media_service_invalid_id">ID de item inválido</string>
     <string name="media_service_car_section_favorites">Favoritos</string>
     <string name="media_service_car_section_audiobooks">Audiolibros</string>

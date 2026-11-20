@@ -67,6 +67,7 @@ class DlnaManager(
 
     private var currentStreamUrl: String = ""
     private var currentTitle: String = ""
+    private var currentSource: JellyfinMediaSource? = null
     private var startPosition: Duration = Duration.ZERO
     private var playing: Boolean = false
 
@@ -124,7 +125,7 @@ class DlnaManager(
      *
      * All URL parameters, no server config change.
      */
-    private fun buildTranscodeUrl(source: JellyfinMediaSource, startTimeTicks: Long): String {
+    private fun buildTranscodeUrl(source: JellyfinMediaSource, startTimeTicks: Long, playSessionId: String): String {
         val base = apiClient.videosApi.getVideoStreamUrl(
             itemId = source.itemId,
             static = false,
@@ -136,7 +137,7 @@ class DlnaManager(
             allowVideoStreamCopy = true,
             allowAudioStreamCopy = true,
             audioStreamIndex = source.selectedAudioStreamIndex,
-            playSessionId = source.playSessionId,
+            playSessionId = playSessionId,
             startTimeTicks = startTimeTicks,
             mediaSourceId = source.id,
             deviceId = apiClient.deviceInfo.id,
@@ -150,7 +151,7 @@ class DlnaManager(
      * renderers whose MPEG-TS demuxer mishandles AAC-ADTS play the video silently,
      * while AC3 in TS is decoded by practically every DMR-era chipset.
      */
-    private fun buildAc3TranscodeUrl(source: JellyfinMediaSource, startTimeTicks: Long): String {
+    private fun buildAc3TranscodeUrl(source: JellyfinMediaSource, startTimeTicks: Long, playSessionId: String): String {
         val base = apiClient.videosApi.getVideoStreamUrl(
             itemId = source.itemId,
             static = false,
@@ -162,7 +163,7 @@ class DlnaManager(
             allowVideoStreamCopy = true,
             allowAudioStreamCopy = false,
             audioStreamIndex = source.selectedAudioStreamIndex,
-            playSessionId = source.playSessionId,
+            playSessionId = playSessionId,
             startTimeTicks = startTimeTicks,
             mediaSourceId = source.id,
             deviceId = apiClient.deviceInfo.id,
@@ -176,7 +177,7 @@ class DlnaManager(
      * so far. Costs a downmix, but a playable stereo stream beats a server error
      * page any day.
      */
-    private fun buildFallbackTranscodeUrl(source: JellyfinMediaSource, startTimeTicks: Long): String {
+    private fun buildFallbackTranscodeUrl(source: JellyfinMediaSource, startTimeTicks: Long, playSessionId: String): String {
         val base = apiClient.videosApi.getVideoStreamUrl(
             itemId = source.itemId,
             static = false,
@@ -188,7 +189,7 @@ class DlnaManager(
             allowVideoStreamCopy = true,
             allowAudioStreamCopy = true,
             audioStreamIndex = source.selectedAudioStreamIndex,
-            playSessionId = source.playSessionId,
+            playSessionId = playSessionId,
             startTimeTicks = startTimeTicks,
             mediaSourceId = source.id,
             deviceId = apiClient.deviceInfo.id,
@@ -207,17 +208,31 @@ class DlnaManager(
      * the END of the file (typical after adding a second audio track) cannot be
      * parsed by a renderer that streams instead of downloading.
      */
-    private fun buildRemuxUrl(source: JellyfinMediaSource, startTimeTicks: Long): String {
+    private fun buildRemuxUrl(source: JellyfinMediaSource, startTimeTicks: Long, playSessionId: String): String {
         val videoCodec = source.selectedVideoStream?.codec ?: "h264"
+        val sourceAudio = source.selectedAudioStream?.codec?.lowercase(Locale.ROOT).orEmpty()
+        // Old DMRs' MPEG-TS demuxer cannot decode AAC-ADTS: the video plays but
+        // there is NO sound (verified 2026-11-19: "Eight Immortals" via remux-ts
+        // had picture but silence). A stream-copied AC3 track is fine, but AAC /
+        // EAC3 / DTS inside TS must be re-encoded to AC3. verifyStarted() cannot
+        // detect silence (it only sees transport state + position), so this must
+        // be fixed at the URL level, not by degrading to a later profile.
+        // Keep true 5.1 only when the source audio is already AC3; otherwise
+        // transcode to AC3 stereo. The VIDEO is still stream-copied (full quality)
+        // and audioStreamIndex still selects the user's chosen (e.g. Chinese) track.
+        val keepAudioCopy = sourceAudio == "ac3"
         val base = apiClient.videosApi.getVideoStreamUrl(
             itemId = source.itemId,
             static = false,
             container = "ts",
             videoCodec = videoCodec,
-            audioCodec = "aac,ac3,eac3,dts",
-            maxAudioChannels = 6,
+            audioCodec = "ac3",
+            maxAudioChannels = if (keepAudioCopy) 6 else 2,
+            enableAutoStreamCopy = true,
+            allowVideoStreamCopy = true,
+            allowAudioStreamCopy = keepAudioCopy,
             audioStreamIndex = source.selectedAudioStreamIndex,
-            playSessionId = source.playSessionId,
+            playSessionId = playSessionId,
             startTimeTicks = startTimeTicks,
             mediaSourceId = source.id,
             deviceId = apiClient.deviceInfo.id,
@@ -226,11 +241,11 @@ class DlnaManager(
     }
 
     /** Direct URL (original file, no server transcoding) for decodable sources. */
-    private fun buildDirectUrl(source: JellyfinMediaSource, startTimeTicks: Long): String {
+    private fun buildDirectUrl(source: JellyfinMediaSource, startTimeTicks: Long, playSessionId: String): String {
         val base = apiClient.videosApi.getVideoStreamUrl(
             itemId = source.itemId,
             static = true,
-            playSessionId = source.playSessionId,
+            playSessionId = playSessionId,
             startTimeTicks = startTimeTicks,
             mediaSourceId = source.id,
             deviceId = apiClient.deviceInfo.id,
@@ -284,7 +299,13 @@ class DlnaManager(
      * Ordered list of stream profiles to try for this item, best quality and
      * cheapest server-side first. See the class doc for the rationale.
      */
-    private fun buildCandidates(source: JellyfinMediaSource, position: Duration): List<Candidate> {
+    private fun buildCandidates(
+        source: JellyfinMediaSource,
+        position: Duration,
+        sessionIdOverride: String? = null,
+        serverSeekOnly: Boolean = false,
+    ): List<Candidate> {
+        val playSessionId = sessionIdOverride ?: source.playSessionId
         val transcodeNeeded = needsTranscode(source)
         // Seek on the SERVER via the stream URL, never via a SOAP Seek after Play.
         // Domestic DMRs that receive Seek right after SetAVTransportURI frequently
@@ -306,26 +327,29 @@ class DlnaManager(
         // reset the user's chosen track. remux/transcode profiles below all carry
         // audioStreamIndex and DO preserve the selection (verified: remux with
         // audioStreamIndex=2 returned exactly one AC3 5.1 Chinese track).
-        if (source.audioStreams.size <= 1) {
-            directCandidates += Candidate("direct", buildDirectUrl(source, startTimeTicks), directMimeType(source), warmUp = false)
+        // static=true (direct) ignores startTimeTicks: Jellyfin serves the
+        // original file from 0 (verified 2026-11-19: direct seek showed pos=0
+        // and timed out). For a server-side seek we must exclude it entirely.
+        if (!serverSeekOnly && source.audioStreams.size <= 1) {
+            directCandidates += Candidate("direct", buildDirectUrl(source, startTimeTicks, playSessionId), directMimeType(source), warmUp = false)
             // Some DMRs accept a direct stream but hang in TRANSITIONING when the
             // URL carries a non-zero start offset; replaying from 0 is free and
             // usually starts immediately.
             if (position > Duration.ZERO) {
-                directCandidates += Candidate("direct-restart", buildDirectUrl(source, 0L), directMimeType(source), warmUp = false)
+                directCandidates += Candidate("direct-restart", buildDirectUrl(source, 0L, playSessionId), directMimeType(source), warmUp = false)
             }
         }
 
         // remux-ts = server stream-copies the ORIGINAL video bitstream into
         // MPEG-TS (zero re-encode, FULL quality, native DLNA container). It is
         // the best fallback for MKV/multi-audio/HEVC sources and costs nothing.
-        val remux = Candidate("remux-ts", buildRemuxUrl(source, startTimeTicks), "video/mp2t", warmUp = true)
+        val remux = Candidate("remux-ts", buildRemuxUrl(source, startTimeTicks, playSessionId), "video/mp2t", warmUp = true)
         // Real H.264 transcodes are the last resort: they cost server CPU and
         // lower picture quality, but work on renderers with no HEVC decoder.
         val transcodes = listOf(
-            Candidate("h264-aac6-ts", buildTranscodeUrl(source, startTimeTicks), "video/mp2t", warmUp = true),
-            Candidate("h264-ac3-ts", buildAc3TranscodeUrl(source, startTimeTicks), "video/mp2t", warmUp = true),
-            Candidate("h264-aac2-ts", buildFallbackTranscodeUrl(source, startTimeTicks), "video/mp2t", warmUp = true),
+            Candidate("h264-aac6-ts", buildTranscodeUrl(source, startTimeTicks, playSessionId), "video/mp2t", warmUp = true),
+            Candidate("h264-ac3-ts", buildAc3TranscodeUrl(source, startTimeTicks, playSessionId), "video/mp2t", warmUp = true),
+            Candidate("h264-aac2-ts", buildFallbackTranscodeUrl(source, startTimeTicks, playSessionId), "video/mp2t", warmUp = true),
         )
 
         if (directFriendly) {
@@ -361,9 +385,11 @@ class DlnaManager(
         source: JellyfinMediaSource,
         position: Duration,
         title: String,
+        sessionIdOverride: String? = null,
+        serverSeekOnly: Boolean = false,
         onAttempt: ((attempt: Int, total: Int) -> Unit)? = null,
     ): Boolean = withContext(Dispatchers.IO) {
-        val candidates = buildCandidates(source, position)
+        val candidates = buildCandidates(source, position, sessionIdOverride, serverSeekOnly)
         for (index in candidates.indices) {
             val candidate = candidates[index]
             if (index > 0) {
@@ -396,6 +422,7 @@ class DlnaManager(
             currentDevice = device
             currentStreamUrl = candidate.url
             currentTitle = title
+            currentSource = source
             startPosition = position
             activeProfile = candidate.label
             playing = true
@@ -614,6 +641,33 @@ class DlnaManager(
         return DlnaController.seek(device, position)
     }
 
+    /**
+     * Seek by re-pushing the stream from [position] instead of using the
+     * AVTransport Seek action. Old DMRs frequently acknowledge Seek with
+     * HTTP 200 yet leave the playhead untouched (observed 2026-11-19:
+     * Seek returned true, no toast, TV did not move). They DO honour a
+     * fresh stream whose URL carries startTimeTicks - the very same
+     * server-side seek used when a cast starts at a resume position,
+     * which is verified working on those TVs.
+     */
+    suspend fun seekByRestart(position: Duration): Boolean {
+        val device = currentDevice ?: return false
+        val source = currentSource ?: return false
+        // A FRESH playSessionId forces Jellyfin to open a new stream session
+        // that honours startTimeTicks. Reusing the old id made the server
+        // resume the previous session and ignore the requested position
+        // (verified 2026-11-19: TV replayed from the pre-seek position).
+        val freshSessionId = java.util.UUID.randomUUID().toString()
+        Timber.i("DLNA seek-by-restart to $position, fresh session=$freshSessionId")
+        val ok = startCasting(
+            device, source, position, currentTitle,
+            sessionIdOverride = freshSessionId,
+            serverSeekOnly = true,
+        )
+        Timber.i("DLNA seek-by-restart to $position -> ok=$ok")
+        return ok
+    }
+
     suspend fun getPosition(): Duration? {
         val device = currentDevice ?: return null
         return DlnaController.getPosition(device)
@@ -623,6 +677,7 @@ class DlnaManager(
         currentDevice?.let { DlnaController.stop(it) }
         currentDevice = null
         currentStreamUrl = ""
+        currentSource = null
         activeProfile = ""
         playing = false
     }

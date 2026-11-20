@@ -13,8 +13,10 @@ object Constants {
 
     // Webapp constants
     const val MINIMUM_WEB_VIEW_VERSION = 80
-    // No bundled default server; the user enters their own address on first launch.
-    const val DEFAULT_SERVER_URL = ""
+    // Bundled default server: auto-registered on first launch so the app goes straight to login.
+    // Injected at build time via BuildConfig so the value is never stored in
+    // version-controlled sources. Empty when no default server was configured.
+    val DEFAULT_SERVER_URL: String = BuildConfig.DEFAULT_SERVER_URL
     const val SHOW_PROGRESS_BAR_DELAY = 1000L
     const val INITIAL_CONNECTION_TIMEOUT = 10000L // 10 seconds
     val MAIN_BUNDLE_PATH_REGEX = Regex(""".*/main\.[^/\s]+\.bundle\.js""")

@@ -38,6 +38,12 @@ android {
         versionCode = getVersionCode(versionName!!)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        // Default server address is injected at build time from local.properties,
+        // an environment variable, or a Gradle property. It is intentionally NOT
+        // hard-coded here so the public source repository never exposes it.
+        buildConfigField("String", "DEFAULT_SERVER_URL",
+            project.getDefaultServerAddress().toBuildConfigStringLiteral())
     }
 
     signingConfigs {

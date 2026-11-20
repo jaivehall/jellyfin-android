@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="player_dlna_seeking">正在跳转到指定位置…</string>
     <string name="pref_download_location">下載位置</string>
     <string name="pref_category_downloads">下載</string>
     <string name="external_player_system_default_description">讓系統自動選擇，某些播放器可能不完全相容。</string>
@@ -21,7 +22,7 @@
     <string name="pref_video_player_type_title">影片播放器類型</string>
     <string name="pref_category_video_player">影片播放器</string>
     <string name="pref_category_music_player">音樂播放器</string>
-    <string name="activity_name_settings">Jellyfin 設定</string>
+    <string name="activity_name_settings">飛影視界 設定</string>
     <string name="external_player_invalid_play_method">無效的播放方式。</string>
     <string name="playback_info_and_x_more">...還有 %d 個</string>
     <string name="playback_info_play_method">播放方式：%s</string>
@@ -34,7 +35,7 @@
     <string name="notification_action_rewind">倒帶</string>
     <string name="notification_action_previous">上一首</string>
     <string name="music_notification_channel_description">用於控制音樂播放</string>
-    <string name="music_notification_channel">Jellyfin 音樂播放器</string>
+    <string name="music_notification_channel">飛影視界 音樂播放器</string>
     <string name="media_service_car_item_no_title">無標題</string>
     <string name="media_service_car_section_genres">風格</string>
     <string name="media_service_car_section_songs">歌曲</string>
@@ -96,7 +97,7 @@
     <string name="button_use_different_server">使用不同的伺服器</string>
     <string name="menu_item_auto">自動</string>
     <string name="pref_exoplayer_start_landscape_video_in_landscape">在播放橫向影片時進入橫向模式</string>
-    <string name="bluetooth_permission_message">Jellyfin</string>
+    <string name="bluetooth_permission_message">飛影視界</string>
     <string name="bluetooth_permission_title">允許存取藍牙？</string>
     <string name="bluetooth_permission_granted">已獲得藍牙存取權限</string>
     <string name="player_error_unspecific_exception">播放器發生了錯誤</string>
@@ -127,4 +128,5 @@
     <string name="skip_media_segment">跳過</string>
     <string name="external_player_mpvkt">mpvKt 播放器</string>
     <string name="no">否</string>
+    <string name="app_name">飛影視界</string>
 </resources>

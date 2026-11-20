@@ -42,7 +42,9 @@ for (const plugin of plugins) {
     };
 }
 
-const { deviceId, deviceName, appName, appVersion } = JSON.parse(window.NativeInterface.getDeviceInformation());
+const { deviceId, deviceName, appName, appVersion, localizedAppName } = JSON.parse(window.NativeInterface.getDeviceInformation());
+// Expose localized branding name for other injected scripts (appIcon.js)
+window.NativeShellLocalizedAppName = localizedAppName || appName || 'Finplayer';
 const codecCaps = JSON.parse(window.NativeInterface.getCodecCapabilities());
 
 window.NativeShell = {

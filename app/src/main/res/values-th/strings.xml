@@ -4,7 +4,7 @@
     <string name="pref_category_video_player">เครื่องเล่นวีดีโอ</string>
     <string name="pref_music_notification_always_dismissible_title">การแจ้งเตือนเครื่องเล่นแบบปิดได้</string>
     <string name="pref_category_music_player">เครื่องเล่นเพลง</string>
-    <string name="activity_name_settings">การตั้งค่า Jellyfin</string>
+    <string name="activity_name_settings">การตั้งค่า Finplayer</string>
     <string name="playback_info_and_x_more">…และอีก %d รายการ</string>
     <string name="playback_info_audio_streams">สตรีมเสียง</string>
     <string name="playback_info_video_streams">สตรีมวิดีโอ</string>
@@ -55,7 +55,7 @@
     <string name="video_player_web">เครื่องเล่นบนเว็บ</string>
     <string name="pref_exoplayer_allow_brightness_volume_gesture">ท่าทางปรับความสว่างและระดับเสียง</string>
     <string name="music_notification_channel_description">ใช้สำหรับควบคุมการเล่นเพลง</string>
-    <string name="music_notification_channel">เครื่องเล่นเพลง Jellyfin</string>
+    <string name="music_notification_channel">เครื่องเล่นเพลง Finplayer</string>
     <string name="media_service_car_item_no_title">ไม่มีชื่อ</string>
     <string name="media_service_car_section_genres">ประเภท</string>
     <string name="media_service_car_section_songs">เพลง</string>
@@ -82,7 +82,7 @@
     <string name="dialog_button_open_settings">เปิดการตั้งค่า</string>
     <string name="button_use_different_server">ใช้เซิร์ฟเวอร์อื่น</string>
     <string name="bluetooth_permission_title">อนุญาตให้เข้าถึงบลูทูธหรือไม่?</string>
-    <string name="bluetooth_permission_message">เพื่อตรวจจับเมื่อหูฟังหรือลำโพงไร้สายถูกตัดการเชื่อมต่อ แอปจำเป็นต้องเข้าถึงบลูทูธ บนระบบ Android การอนุญาตนี้จะระบุว่าเป็นการเข้าถึงอุปกรณ์ใกล้เคียง พร้อมคำเตือนว่าอาจใช้เพื่อระบุตำแหน่งปัจจุบันได้ ทั้งนี้ แอป Jellyfin จะไม่มีทางใช้สิทธิ์นี้เพื่อระบุตำแหน่งของคุณ</string>
+    <string name="bluetooth_permission_message">เพื่อตรวจจับเมื่อหูฟังหรือลำโพงไร้สายถูกตัดการเชื่อมต่อ แอปจำเป็นต้องเข้าถึงบลูทูธ บนระบบ Android การอนุญาตนี้จะระบุว่าเป็นการเข้าถึงอุปกรณ์ใกล้เคียง พร้อมคำเตือนว่าอาจใช้เพื่อระบุตำแหน่งปัจจุบันได้ ทั้งนี้ แอป Finplayer จะไม่มีทางใช้สิทธิ์นี้เพื่อระบุตำแหน่งของคุณ</string>
     <string name="bluetooth_permission_continue">ดำเนินการต่อ</string>
     <string name="bluetooth_permission_granted">อนุญาตการใช้งานบลูทูธแล้ว</string>
     <string name="wifi_only_summary">สื่อจะถูกดาวน์โหลดผ่าน Wi-Fi เท่านั้น</string>
@@ -90,7 +90,7 @@
     <string name="mobile_data_and_roaming_summary">สื่อจะถูกดาวน์โหลดผ่าน Wi-Fi เครือข่ายมือถือ และเครือข่ายโรมมิ่ง</string>
     <string name="media_service_unknown_page">ไม่รู้จักหน้านี้</string>
     <string name="media_service_no_items">ไม่พบรายการ</string>
-    <string name="media_service_auth_expired">โปรดเปิดแอปบนโทรศัพท์ของคุณเพื่อเข้าสู่ระบบเซิร์ฟเวอร์ Jellyfin</string>
+    <string name="media_service_auth_expired">โปรดเปิดแอปบนโทรศัพท์ของคุณเพื่อเข้าสู่ระบบเซิร์ฟเวอร์ Finplayer</string>
     <string name="media_service_invalid_id">ID รายการไม่ถูกต้อง</string>
     <string name="media_service_car_section_favorites">รายการโปรด</string>
     <string name="media_service_car_section_audiobooks">หนังสือเสียง</string>

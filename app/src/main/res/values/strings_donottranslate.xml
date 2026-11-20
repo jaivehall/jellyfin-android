@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Finplayer</string>
+    <string name="app_name">Finplayer</string>
     <string name="app_name_short" translatable="false">Finplayer</string>
 </resources>

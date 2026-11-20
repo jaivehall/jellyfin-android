@@ -17,6 +17,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.OrientationEventListener
 import android.view.View
@@ -24,6 +25,8 @@ import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
 import android.widget.ImageButton
 import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.SeekBar
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.annotation.RequiresApi
@@ -43,6 +46,7 @@ import androidx.media3.ui.PlayerView
 import io.github.peerless2012.ass.media.AssHandler
 import io.github.peerless2012.ass.media.widget.AssSubtitleView
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -73,6 +77,7 @@ import org.jellyfin.mobile.utils.toast
 import org.jellyfin.sdk.model.api.MediaSegmentDto
 import org.jellyfin.sdk.model.api.MediaStream
 import org.koin.android.ext.android.inject
+import java.util.Locale
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 import org.jellyfin.mobile.player.cast.dlna.DlnaDevice
@@ -97,6 +102,12 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
     private val castRouteButton: MediaRouteButton get() = playerControlsBinding.castRouteButton
     private var discoveryJob: Job? = null
     private var dlnaControlDialog: AlertDialog? = null
+    private var dlnaProgressJob: Job? = null
+    private var dlnaSeekJob: Job? = null
+    private var dlnaBasePositionMs = 0L
+    private var dlnaBaseElapsedMs = 0L
+    private var dlnaDurationMs = 0L
+    private var dlnaUserSeeking = false
     private var playerMenus: PlayerMenus? = null
 
     private lateinit var playerFullscreenHelper: PlayerFullscreenHelper
@@ -490,6 +501,13 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
             progress.dismiss()
             if (!isAdded) return@launch
             if (ok) {
+                // Seed the phone-side progress model from the position we handed to
+                // the TV and the media duration. TV RelTime telemetry is unreliable
+                // on some DMRs, so local time is the primary source of progress.
+                dlnaBasePositionMs = position.inWholeMilliseconds
+                dlnaBaseElapsedMs = SystemClock.elapsedRealtime()
+                dlnaDurationMs = (viewModel.playerOrNull?.duration?.takeIf { it > 0 }
+                    ?: viewModel.mediaSourceOrNull?.runTime?.inWholeMilliseconds ?: 0L)
                 viewModel.setDlnaCasting(true)
                 // Keep a persistent control overlay (pause / stop casting) instead
                 // of a one-shot toast while the TV is playing.
@@ -500,54 +518,178 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
         }
     }
 
+    /** Estimated TV playback position: baseline plus wall time while playing. */
+    private fun dlnaPositionMs(): Long {
+        val manager = viewModel.dlnaManager
+        val elapsed = if (manager.isPlaying) SystemClock.elapsedRealtime() - dlnaBaseElapsedMs else 0L
+        val cap = dlnaDurationMs.takeIf { it > 0 } ?: Long.MAX_VALUE
+        return (dlnaBasePositionMs + elapsed).coerceIn(0L, cap)
+    }
+
+    private fun formatDlnaTime(ms: Long): String {
+        val total = (ms / 1000).coerceAtLeast(0)
+        val hours = total / 3600
+        val minutes = (total % 3600) / 60
+        val seconds = total % 60
+        return if (hours > 0) {
+            String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.US, "%02d:%02d", minutes, seconds)
+        }
+    }
+
+    /**
+     * Persistent on-phone control for an active DLNA session: seek bar, elapsed /
+     * total time, pause-resume and stop. Dragging the bar issues an AVTransport
+     * Seek to the TV; progress advances from local time and is corrected whenever
+     * the renderer reports a usable position.
+     */
     private fun showDlnaControlDialog() {
         // Never stack a second control dialog on top of a showing one
         if (dlnaControlDialog?.isShowing == true) return
         val context = requireContext()
         val manager = viewModel.dlnaManager
-        val items = arrayOf(
-            context.getString(if (manager.isPlaying) R.string.player_dlna_pause else R.string.player_dlna_resume),
-            context.getString(R.string.player_dlna_stop),
-        )
-        AlertDialog.Builder(context)
-            .setTitle(context.getString(R.string.player_dlna_connected, manager.deviceName))
-            // No cancel button: the overlay stays until the user pauses or stops,
-            // and cannot be dismissed by tapping outside either.
-            .setCancelable(false)
-            .setItems(items) { _, index ->
-                viewLifecycleOwner.lifecycleScope.launch {
-                    when (index) {
-                        0 -> {
-                            runCatching { manager.togglePlayPause() }
-                            // Reopen the overlay with the refreshed pause/resume label
-                            if (isAdded) showDlnaControlDialog()
-                        }
-                        1 -> {
-                            // Read the TV-side position BEFORE stopping (stop clears
-                            // the current device), then hand playback back to the
-                            // local player at the same position.
-                            val position = runCatching { manager.getPosition() }.getOrNull()
-                            runCatching { manager.stop() }
-                            viewModel.setDlnaCasting(false)
-                            viewModel.playerOrNull?.let { player ->
-                                position?.let {
-                                    // Clamp to the local duration so a stale/oversized
-                                    // renderer report can never jump past the end
-                                    val maxMs = player.duration.takeIf { d -> d > 0 } ?: Long.MAX_VALUE
-                                    player.seekTo(it.inWholeMilliseconds.coerceAtMost(maxMs))
-                                }
-                                player.play()
-                            }
-                        }
-                    }
+        val density = context.resources.displayMetrics.density
+        val pad = (20 * density).toInt()
+
+        val timeText = TextView(context).apply {
+            textSize = 14f
+            gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+        }
+        val seekBar = SeekBar(context).apply {
+            max = dlnaDurationMs.coerceAtMost(Int.MAX_VALUE.toLong()).toInt().coerceAtLeast(1)
+        }
+        val pauseButton = Button(context).apply {
+            text = context.getString(if (manager.isPlaying) R.string.player_dlna_pause else R.string.player_dlna_resume)
+        }
+        val stopButton = Button(context).apply {
+            text = context.getString(R.string.player_dlna_stop)
+        }
+        val buttonRow = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            addView(pauseButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(stopButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        val view = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, pad, pad, pad)
+            addView(timeText)
+            addView(
+                seekBar,
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { topMargin = pad; bottomMargin = pad },
+            )
+            addView(buttonRow)
+        }
+
+        fun refreshUi() {
+            if (dlnaUserSeeking) return
+            val pos = dlnaPositionMs()
+            seekBar.progress = pos.coerceAtMost(seekBar.max.toLong()).toInt()
+            timeText.text = "${formatDlnaTime(pos)} / ${formatDlnaTime(dlnaDurationMs)}"
+            pauseButton.text = context.getString(
+                if (manager.isPlaying) R.string.player_dlna_pause else R.string.player_dlna_resume
+            )
+        }
+
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    timeText.text = "${formatDlnaTime(progress.toLong())} / ${formatDlnaTime(dlnaDurationMs)}"
                 }
             }
-            .create()
-            .also { dialog ->
-                dlnaControlDialog = dialog
-                dialog.show()
-                dialog.applyHintBackground()
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                dlnaUserSeeking = true
             }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                val targetMs = (seekBar?.progress ?: 0).toLong().coerceAtMost(dlnaDurationMs)
+                // Keep UI frozen on the target position until the restart
+                // finishes; otherwise the refresh loop snaps the bar back.
+                timeText.text = context.getString(R.string.player_dlna_seeking)
+                // A newer drag supersedes an in-flight restart: otherwise
+                // overlapping SetAVTransportURI calls fight each other.
+                dlnaSeekJob?.cancel()
+                dlnaSeekJob = viewLifecycleOwner.lifecycleScope.launch {
+                    val ok = runCatching { manager.seekByRestart(targetMs.milliseconds) }.getOrDefault(false)
+                    if (ok) {
+                        dlnaBasePositionMs = targetMs
+                        dlnaBaseElapsedMs = SystemClock.elapsedRealtime()
+                    } else {
+                        context.toast(R.string.player_dlna_seek_failed)
+                    }
+                    dlnaUserSeeking = false
+                    refreshUi()
+                }
+            }
+        })
+
+        pauseButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val current = dlnaPositionMs()
+                val ok = runCatching { manager.togglePlayPause() }.getOrDefault(false)
+                // Freeze the baseline at the moment of the toggle so progress
+                // neither jumps ahead while paused nor rewinds on resume.
+                dlnaBasePositionMs = current
+                dlnaBaseElapsedMs = SystemClock.elapsedRealtime()
+                refreshUi()
+                if (ok) Unit else context.toast(R.string.player_dlna_control_failed)
+            }
+        }
+
+        stopButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                // Read our own estimated position (TV telemetry may be absent).
+                val position = dlnaPositionMs().milliseconds
+                runCatching { manager.stop() }
+                viewModel.setDlnaCasting(false)
+                dlnaProgressJob?.cancel()
+                dlnaProgressJob = null
+                dlnaSeekJob?.cancel()
+                dlnaSeekJob = null
+                dlnaControlDialog?.dismiss()
+                dlnaControlDialog = null
+                viewModel.playerOrNull?.let { player ->
+                    val maxMs = player.duration.takeIf { d -> d > 0 } ?: Long.MAX_VALUE
+                    player.seekTo(position.inWholeMilliseconds.coerceAtMost(maxMs))
+                    player.play()
+                }
+            }
+        }
+
+        val dialog = AlertDialog.Builder(context)
+            .setTitle(context.getString(R.string.player_dlna_connected, manager.deviceName))
+            .setView(view)
+            .setCancelable(false)
+            .create()
+            .also { dlnaControlDialog = it }
+        dialog.show()
+        dialog.applyHintBackground()
+
+        // Refresh progress every second; correct the baseline with the TV's own
+        // position whenever it reports something usable (> 0).
+        dlnaProgressJob?.cancel()
+        dlnaProgressJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive && dialog.isShowing) {
+                runCatching { manager.getPosition() }.getOrNull()?.let { tvPos ->
+                    // While dragging or a restart-seek is in flight the TV still
+                    // reports the OLD session position; using it would yank the
+                    // bar back to the pre-seek spot (verified 2026-11-19).
+                    if (dlnaUserSeeking) return@let
+                    val tvMs = tvPos.inWholeMilliseconds
+                    if (tvMs > 0) {
+                        dlnaBasePositionMs = tvMs
+                        dlnaBaseElapsedMs = SystemClock.elapsedRealtime()
+                    }
+                }
+                refreshUi()
+                delay(1000)
+            }
+        }
     }
 
     override fun onStart() {
@@ -782,8 +924,13 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
     }
 
     override fun onDestroyView() {
+        dlnaProgressJob?.cancel()
+        dlnaProgressJob = null
+        dlnaSeekJob?.cancel()
+        dlnaSeekJob = null
         dlnaControlDialog?.dismiss()
         dlnaControlDialog = null
+        dlnaUserSeeking = false
         super.onDestroyView()
         // Detach player from PlayerView
         playerView.player = null

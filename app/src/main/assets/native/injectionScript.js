@@ -1,7 +1,10 @@
 (() => {
     const scripts = [
+        '/native/itemsSortOverride.js',
         '/native/nativeshell.js',
         '/native/appIcon.js',
+        '/native/aboutMenu.js',
+        '/native/drawerBrand.js',
         '/native/EventEmitter.js',
         document.currentScript.src.concat('?deferred=true&ts=', Date.now())
     ];

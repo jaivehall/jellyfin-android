@@ -19,7 +19,7 @@
     <string name="pref_category_video_player">视频播放器</string>
     <string name="pref_music_notification_always_dismissible_title">可忽略的播放器通知</string>
     <string name="pref_category_music_player">音乐播放器</string>
-    <string name="activity_name_settings">Jellyfin设置</string>
+    <string name="activity_name_settings">飞影视界设置</string>
     <string name="playback_info_and_x_more">....还有 %d 个</string>
     <string name="playback_info_audio_streams">音频流</string>
     <string name="playback_info_video_streams">视频流</string>
@@ -56,7 +56,7 @@
     <string name="external_player_mpv">MPV 播放器</string>
     <string name="external_player_app">外部播放器应用</string>
     <string name="music_notification_channel_description">用于控制音乐播放</string>
-    <string name="music_notification_channel">Jellyfin 音乐播放器</string>
+    <string name="music_notification_channel">飞影视界 音乐播放器</string>
     <string name="media_service_car_item_no_title">无标题</string>
     <string name="media_service_car_section_genres">风格</string>
     <string name="media_service_car_section_songs">歌曲</string>
@@ -101,7 +101,7 @@
     <string name="menu_item_hardware_decoding">硬件解码</string>
     <string name="menu_item_software_decoding">软件解码</string>
     <string name="button_use_different_server">使用其它服务器</string>
-    <string name="bluetooth_permission_message">为了检测无线耳机或扬声器是否断开连接，应用需要蓝牙访问权限。在 Android 系统中，该权限被描述为“附近的设备”，权限可以使用蓝牙推断您的当前位置。不过，Jellyfin 应用程序将不会使用该权限来检测你的位置。</string>
+    <string name="bluetooth_permission_message">为了检测无线耳机或扬声器是否断开连接，应用需要蓝牙访问权限。在 Android 系统中，该权限被描述为“附近的设备”，权限可以使用蓝牙推断您的当前位置。不过，飞影视界 应用程序将不会使用该权限来检测你的位置。</string>
     <string name="bluetooth_permission_title">允许使用蓝牙？</string>
     <string name="bluetooth_permission_continue">继续</string>
     <string name="bluetooth_permission_granted">已授予蓝牙权限</string>
@@ -142,6 +142,7 @@
     <string name="player_dlna_connecting">正在为 %1$s 准备投屏流…</string>
     <string name="player_dlna_retry">正在尝试兼容的流格式（%1$d/%2$d）…</string>
     <string name="player_dlna_connected">正在投屏到 %1$s</string>
+    <string name="player_dlna_seeking">正在跳转到指定位置…</string>
     <string name="player_dlna_stop">停止投屏</string>
     <string name="player_dlna_pause">暂停</string>
     <string name="player_dlna_resume">继续</string>
@@ -151,7 +152,7 @@
     <string name="special_episode">特别篇</string>
     <string name="media_service_unknown_page">未知页面</string>
     <string name="media_service_no_items">未找到结果</string>
-    <string name="media_service_auth_expired">请打开您手机上的应用以登录您的Jellyfin服务器。</string>
+    <string name="media_service_auth_expired">请打开您手机上的应用以登录您的飞影视界服务器。</string>
     <string name="media_service_invalid_id">无效的项目ID</string>
     <string name="media_service_car_section_favorites">收藏夹</string>
     <string name="media_service_car_section_audiobooks">有声书</string>
@@ -190,4 +191,5 @@
     <string name="download_location_inaccessible">无法访问下载地址</string>
     <string name="download_location_inaccessible_description">当前选择的下载位置已无法访问。请选择其他文件夹以继续下载。</string>
     <string name="pref_exoplayer_direct_play_ass_description">使用实验性的客户端字幕渲染，可能并非始终有效</string>
+    <string name="app_name">飞影视界</string>
 </resources>

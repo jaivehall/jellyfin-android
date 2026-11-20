@@ -24,7 +24,7 @@
     <string name="button_use_different_server">Use a different server</string>
 
     <string name="bluetooth_permission_title">Allow Bluetooth access?</string>
-    <string name="bluetooth_permission_message">To detect when wireless headphones or speakers are disconnected, the app requires Bluetooth access. On Android, this permission is described as access to nearby devices, and warns that Bluetooth devices can be used to infer the current location. However, the Jellyfin app will never use this permission to detect your location.</string>
+    <string name="bluetooth_permission_message">To detect when wireless headphones or speakers are disconnected, the app requires Bluetooth access. On Android, this permission is described as access to nearby devices, and warns that Bluetooth devices can be used to infer the current location. However, the Finplayer app will never use this permission to detect your location.</string>
     <string name="bluetooth_permission_continue">Continue</string>
     <string name="bluetooth_permission_granted">Bluetooth permission was granted</string>
     <string name="battery_optimizations_message">Please disable battery optimizations for media playback while the screen is off.</string>
@@ -43,7 +43,7 @@
     <string name="media_service_item_not_found">Media item could not be found</string>
     <string name="media_service_unknown_page">Unknown page</string>
     <string name="media_service_no_items">No items found</string>
-    <string name="media_service_auth_expired">Please open the app on your phone to sign in to your Jellyfin server.</string>
+    <string name="media_service_auth_expired">Please open the app on your phone to sign in to your Finplayer server.</string>
     <string name="media_service_invalid_id">Invalid item ID</string>
 
     <!-- MediaService / Car-related strings -->
@@ -57,7 +57,7 @@
     <string name="media_service_car_section_playlists">Playlists</string>
     <string name="media_service_car_item_no_title">No title</string>
 
-    <string name="music_notification_channel">Jellyfin Music Player</string>
+    <string name="music_notification_channel">Finplayer Music Player</string>
     <string name="music_notification_channel_description">Used for music playback controls</string>
     <string name="notification_action_previous">Previous</string>
     <string name="notification_action_rewind">Rewind</string>
@@ -101,6 +101,9 @@
     <string name="player_dlna_pause">Pause</string>
     <string name="player_dlna_resume">Resume</string>
     <string name="player_dlna_cancel">Cancel</string>
+    <string name="player_dlna_seeking">Jumping to position…</string>
+    <string name="player_dlna_seek_failed">Could not seek on this device</string>
+    <string name="player_dlna_control_failed">Could not control playback on this device</string>
     <string name="dlna_proxy_notification_title">Casting to TV (relay mode)</string>
     <string name="dlna_proxy_notification_text">Keep this notification to maintain playback. Your phone can be locked.</string>
 
@@ -109,7 +112,7 @@
     <string name="external_player_invalid_player">No valid external player selected. Playback tracking disabled.</string>
     <string name="external_player_unknown_error">Unknown error in external player. Playback tracking disabled.</string>
 
-    <string name="activity_name_settings">Jellyfin Settings</string>
+    <string name="activity_name_settings">Finplayer Settings</string>
     <string name="pref_category_music_player">Music player</string>
     <string name="pref_music_notification_always_dismissible_title">Dismissible player notification</string>
     <string name="pref_music_notification_always_dismissible_summary_off">The notification can only be dismissed when playback is paused</string>

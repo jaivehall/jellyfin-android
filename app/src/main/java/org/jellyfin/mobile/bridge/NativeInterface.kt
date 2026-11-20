@@ -65,6 +65,8 @@ class NativeInterface(private val context: Context) : KoinComponent {
             put("deviceName", name)
             put("appName", clientInfo.name)
             put("appVersion", clientInfo.version)
+            // Localized app name (follows system locale) for WebView branding text
+            put("localizedAppName", context.getString(org.jellyfin.mobile.R.string.app_name))
         }.toString()
     } catch (e: Exception) {
         null

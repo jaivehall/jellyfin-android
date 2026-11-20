@@ -62,7 +62,7 @@ fun LogoHeader() {
         Image(
             painter = painterResource(R.drawable.app_logo),
             modifier = Modifier
-                .height(96.dp),
+                .height(68.dp),
             contentDescription = null,
         )
     }
